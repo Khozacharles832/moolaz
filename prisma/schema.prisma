@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Candle {
+  id        Int      @id @default(autoincrement())
+  time      DateTime
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+
+  createdAt DateTime @default(now())
+}
+
+model Level {
+  id        Int      @id @default(autoincrement())
+  price     Float
+  type      LevelType
+  touches   Int
+
+  createdAt DateTime @default(now())
+}
+
+model Trade {
+  id        Int      @id @default(autoincrement())
+  type      TradeType
+
+  entry     Float
+  stopLoss  Float
+  takeProfit Float
+
+  exit      Float?
+  profit    Float?
+
+  lotSize   Float?
+
+  status    TradeStatus
+
+  openedAt  DateTime @default(now())
+  closedAt  DateTime?
+}
+
+model BotConfig {
+  id           Int      @id @default(autoincrement())
+  maxTradesDay Int
+  riskPerTrade Float
+  active       Boolean  @default(true)
+}
+
+model Account {
+  id        Int      @id @default(autoincrement())
+  balance   Float
+  equity    Float
+  createdAt DateTime @default(now())
+}
+
+enum LevelType {
+  SUPPORT
+  RESISTANCE
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+
+enum TradeStatus {
+  OPEN
+  CLOSED
+}

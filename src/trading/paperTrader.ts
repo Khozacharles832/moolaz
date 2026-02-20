@@ -1,17 +1,45 @@
-interface Trade {
-  type: "buy" | "sell";
-  entry: number;
-  time: number;
-}
+import { prisma } from "../db/prisma";
+import { calculateRisk } from "./riskEngine";
+import { calculateLotSize } from "./positionSizing";
 
-export const trades: Trade[] = [];
+type TradeSide = "buy" | "sell";
 
-export function openTrade(type: "buy" | "sell", price: number) {
-  trades.push({
-    type,
-    entry: price,
-    time: Date.now()
+export async function openTrade(
+  type: "buy" | "sell",
+  price: number
+) {
+  const account = await prisma.account.findFirst();
+
+  if (!account) {
+    throw new Error("Account not initialized");
+  }
+
+  const risk = calculateRisk(type, price);
+
+  const lotSize = calculateLotSize(
+    account.balance,
+    1, // risk 1%
+    price,
+    risk.stopLoss
+  );
+
+  const trade = await prisma.trade.create({
+    data: {
+      type: type === "buy" ? "BUY" : "SELL",
+      entry: price,
+      stopLoss: risk.stopLoss,
+      takeProfit: risk.takeProfit,
+      lotSize,
+      status: "OPEN",
+    },
   });
 
-  console.log("Paper trade:", type, price);
+  console.log(
+    `[OPEN] ${type.toUpperCase()} @ ${price}
+     SL: ${risk.stopLoss}
+     TP: ${risk.takeProfit}
+     LOT: ${lotSize}`
+  );
+
+  return trade;
 }
