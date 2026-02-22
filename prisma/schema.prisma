@@ -57,6 +57,16 @@ model Account {
   id        Int      @id @default(autoincrement())
   balance   Float
   equity    Float
+  peakBalance Float?
+  isTrading Boolean @default(true)
+  dailyLoss Float @default(0)
+  lastReset DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
+model EquitySnapshot {
+  id        Int      @id @default(autoincrement())
+  balance   Float
   createdAt DateTime @default(now())
 }
 
